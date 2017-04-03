@@ -6,11 +6,14 @@
   Version: 1.0
 */
 
-if(have_rows('field_group_name')): // check if "field_group_name" has any data to show elements on a page
-  while(have_rows('field_group_name')): the_row(); // iterate through the rows
+$field_group = NULL;
+$post_object = NULL;
 
-    if(get_sub_field('post_object_name')): // checking if theres a post object, should probably loop through repeater with while anyway... I'll try later
-      $post_object = get_sub_field('post_object_name'); // add post object to variable
+if(have_rows($field_group)): // check if "field_group_name" has any data to show elements on a page
+  while(have_rows($field_group)): the_row(); // iterate through the rows
+
+    if(get_sub_field($post_object)): // checking if theres a post object, should probably loop through repeater with while anyway... I'll try later
+      $post_object = get_sub_field($post_object); // add post object to variable
       $post = $post_object; // override post
       setup_postdata($post); // set overriden data
 
