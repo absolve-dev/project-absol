@@ -1,0 +1,44 @@
+@startuml
+start
+  note
+    This is really assuming you have an AWS EC2 instance
+    Hence the "ec2-user" references
+  end note
+:sudo yum install git;
+:cd /var;
+:sudo mkdir repo;
+:sudo chown ec2-user repo && sudo chgrp ec2-user repo (maybe);
+:mkdir wordpress.git && cd wordpress.git;
+  note
+    Likely required to create directories here
+  end note
+:git init --bare && cd hooks;
+:touch post-receive && nano post-receive;
+  note
+    Should contain:
+
+    ~#!/bin/sh
+    git ~--work-tree=/var/www/html/wp-content --git-dir=/var/www/repo/wordpress.git checkout -f
+
+    //Ensure that the above is as shown and the diagram, and NOT just copy-and-pasted
+    //The work-tree can be changed if required//
+  end note
+:chmod +x post-receive;
+partition "On local Git Repo"{
+  :Create a new Remote Repository;
+    note
+      ssh://username@ip_address/var/repo/wordpress.git
+
+      //the username is likey 'ec2-user'//
+    end note
+  :Set user permissions;
+    note
+      (not known if this required, this specifically needs to be tested more)
+      sudo usermod -a -G www ec2-user
+      sudo chmod -R g+w /var/www/html
+    end note
+  :Push and play;
+}
+stop
+
+@enduml
