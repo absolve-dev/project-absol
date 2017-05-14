@@ -4,14 +4,11 @@ start
     This is really assuming you have an AWS EC2 instance
     Hence the "ec2-user" references
   end note
-:sudo yum install git;
+:sudo yum install -y git;
 :cd /var;
 :sudo mkdir repo;
-:sudo chown ec2-user repo && sudo chgrp ec2-user repo (maybe);
+:sudo chown ec2-user repo && sudo chgrp ec2-user repo;
 :mkdir wordpress.git && cd wordpress.git;
-  note
-    Likely required to create directories here
-  end note
 :git init --bare && cd hooks;
 :touch post-receive && nano post-receive;
   note
@@ -24,18 +21,18 @@ start
     //The work-tree can be changed if required//
   end note
 :chmod +x post-receive;
+:Set user permissions;
+note
+  (not known if this required, this specifically needs to be tested more)
+  sudo usermod -a -G www ec2-user
+  sudo chmod -R g+w /var/www/html
+end note
 partition "On local Git Repo"{
   :Create a new Remote Repository;
     note
       ssh://username@ip_address/var/repo/wordpress.git
 
       //the username is likey 'ec2-user'//
-    end note
-  :Set user permissions;
-    note
-      (not known if this required, this specifically needs to be tested more)
-      sudo usermod -a -G www ec2-user
-      sudo chmod -R g+w /var/www/html
     end note
   :Push and play;
 }

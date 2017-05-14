@@ -1,0 +1,14 @@
+@startuml
+
+start
+  :Open up MySQL terminal to the database
+  (or whatever you want to use);
+  :CREATE USER 'wordpress-user'@'%' IDENTIFIED BY 'password_here';
+    note
+      Use (%) wildcard to allow external access
+    end note
+  :GRANT ALL PRIVILEGES ON `db_name`.* TO "wordpress-user"@"%" IDENTIFIED BY 'password_here';
+  :FLUSH PRIVILEGES;
+stop
+
+@enduml

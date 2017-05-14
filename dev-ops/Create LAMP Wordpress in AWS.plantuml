@@ -1,0 +1,117 @@
+@startuml
+
+start
+  note
+    Basically:
+
+    http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-LAMP.html
+  end note
+  :Ensure ports 80 (and 443, if using SSL) are open in security settings;
+  :sudo yum update -y;
+  :sudo yum install -y httpd24 php70 php70-mysqlnd;
+    note
+      If youre not using RDS, go through
+      additional MySQL installation steps
+    end note
+  :sudo service httpd start;
+    note
+      Verify with:
+
+      chkconfig --list httpd
+    end note
+  :sudo chkconfig httpd on;
+    note
+      Run on every boot
+    end note
+  partition "Set File Permissions"{
+    :sudo groupadd www;
+    :sudo usermod -a -G www ec2-user;
+    :Exit, then log back in to apply user groups;
+    :sudo chown -R ec2-user:www /var/www;
+    :sudo chmod 2775 /var/www;
+    :find /var/www -type d -exec sudo chmod 2775 {} \;;
+    :find /var/www -type f -exec sudo chmod 0664 {} \;;
+      note
+        This isn't really enough for Aoache to write
+      end note
+  }
+  #pink:Set up SSL (optional, and can be done later);
+  partition "Set Up Base Wordpress"{
+    :cd to /var/www/html;
+      note
+        Or wherever your document root is
+      end note
+    :wget https://wordpress.org/latest.tar.gz;
+    :tar -xzf latest.tar.gz;
+    :cd wordpress;
+    :mv * /var/www/html;
+    :rmdir wordpress;
+  }
+  partition "Set File Permissions for Apache"{
+    :sudo usermod -a -G www apache;
+    :sudo chown -R apache /var/www;
+    :sudo chgrp -R www /var/www;
+    :sudo chmod 2775 /var/www;
+    :find /var/www -type d -exec sudo chmod 2775 {} \;;
+    :find /var/www -type f -exec sudo chmod 0664 {} \;;
+    :sudo service httpd restart;
+  }
+  :Visit server to set up Wordpress;
+stop
+
+start
+  note #pink
+    Set up SSL
+  end note
+  :sudo yum install -y mod24_ssl;
+    note
+      Basically:
+
+      http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/SSL-on-an-instance.html
+    end note
+  :Set up your own keys/certificates;
+    note
+      If you need to do this... Self-signed certificates are available for testing after installation
+    end note
+  partition "Set up your own keys/certificates"{
+
+    :Upload your private, signed, and intermediate certificates from your CA;
+      note
+        Make sure you have the private key used to generate the certificates from the CA
+      end note
+    :Copy those files to: /etc/pki/tls/certs;
+      note
+        Command:
+        sudo mv target_source target_destination
+
+        Example:
+        sudo mv intermediate.crt /etc/pki/tls/certs/intermediate.crt
+      end note
+    :cd /etc/pki/tls/certs/;
+    :Remove localhost.crt in that directory, if it exists;
+    partition "Apply permissions to signed certificate"{
+      :sudo chown root.root signed.crt;
+      :sudo chmod 600 signed.crt;
+    }
+    partition "Apply permissions to intermediate/bundle certificate (if exists)"{
+      :sudo chown root.root intermediate.crt;
+      :sudo chmod 644 intermediate.crt;
+    }
+    partition "Apply permissions to custom key certificate (if exists)"{
+      :sudo chown root.root custom.key;
+      :sudo chmod 644 custom.key;
+    }
+    :sudo nano /etc/httpd/conf.d/ssl.conf;
+    partition "Edit ssl.conf"{
+      :Set "SSLCertificateFile" directive to path of signed certificate;
+      :Set "SSLCACertificateFile" directive to path of intermediate/bundle certificate;
+      :Set "SSLCertificateKeyFile" directive to path of custom key;
+        note
+          Only if you installed a custom private key
+        end note
+    }
+    :sudo service httpd restart;
+  }
+stop
+
+@enduml
