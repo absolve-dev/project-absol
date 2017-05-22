@@ -11,6 +11,9 @@ start
 :cd repo;
 :mkdir wordpress.git && cd wordpress.git;
 :git init --bare && cd hooks;
+  note
+    You can stop here if no hooks are needed
+  end note
 :touch post-receive && nano post-receive;
   note
     Should contain:
