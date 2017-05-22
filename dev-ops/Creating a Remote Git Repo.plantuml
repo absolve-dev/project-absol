@@ -8,6 +8,7 @@ start
 :cd /var;
 :sudo mkdir repo;
 :sudo chown ec2-user repo && sudo chgrp ec2-user repo;
+:cd repo;
 :mkdir wordpress.git && cd wordpress.git;
 :git init --bare && cd hooks;
 :touch post-receive && nano post-receive;
